@@ -1,7 +1,7 @@
 # Stress-ng REST server
-This is a very basic Flask based REST server which takes in the stress-ng factors like compute,storage and netwok along with time and allows to run time varying stress tests. There are two modes available -
+This is a very basic Flask based REST server which takes in the stress-ng factors like compute,storage and netwok along with time and allows to run time varying stress tests. There are three modes available -
 
-- ### Step Varying Mode
+## 1. Step Varying Mode
 This mode allows to increase the loads by some fixed unit and at some fixed step time. A sample json would be as follows - 
 ```python
 step_time = {
@@ -21,7 +21,7 @@ step_time = {
 ```
 This is available on the route - `http://localhost/v1/runtask/step_vary`
 
-- ### Time Varying Mode
+## 2. Time Varying Mode
 This mode allows to set stres loads for a particular time span. A sample json would be as follows -
 ```python
 task_runner = {
@@ -48,7 +48,7 @@ task_runner = {
 ```
 This is available on the route - `http://localhost/v1/runtask/time_vary`
 
-- ### File Upload Mode
+## 3. File Upload Mode
 To make sure to pass the configurations as a configuration file, we can post a `yaml` file with a similar json configration with starting field as `operationMode` in the file.
 
 - If the `operationMode == step`, this will run the application in step varying mode.

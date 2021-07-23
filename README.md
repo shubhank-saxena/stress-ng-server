@@ -57,7 +57,7 @@ To make sure to pass the configurations as a configuration file, we can post a `
 
 This is available on the route - `http://localhost/v1/runtask/fileupload`
 
-#### For all the use cases, you can find samples in the samples folder.
+### For all the use cases, you can find samples in the samples folder.
 ## How to run the tool
 ## 1. Docker
 - Run `docker-compse build` to build the image.

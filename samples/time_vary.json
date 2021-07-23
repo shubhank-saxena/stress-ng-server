@@ -1,0 +1,21 @@
+{   
+    "total_time" : "time",
+    "task_run" : {
+        "task1": {
+            "time_slot" : "time",
+            "resources" : {
+                "cpu": 10,
+                "disk": 12,
+                "io": 10
+            }
+        },
+        "task2": {
+            "time_slot" : "time",
+            "resources" : {
+                "cpu": 10,
+                "disk": 12,
+                "io": 10
+            }
+        }
+    }
+}

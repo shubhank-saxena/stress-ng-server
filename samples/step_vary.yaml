@@ -1,0 +1,15 @@
+operationMode : step
+
+start_load:
+  cpu: 10
+  disk: 12
+  io: 10
+
+time_step: 10
+
+step_load:
+  cpu: 10
+  disk: 12
+  io: 10
+
+end_time: 100

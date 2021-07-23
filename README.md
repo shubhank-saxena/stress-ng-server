@@ -57,8 +57,14 @@ To make sure to pass the configurations as a configuration file, we can post a `
 
 This is available on the route - `http://localhost/v1/runtask/fileupload`
 
+#### For all the use cases, you can find samples in the samples folder.
 ## How to run the tool
-- Install pipenv on your system using `sudo pip3 install pipenv`
+## 1. Docker
+- Run `docker-compse build` to build the image.
+- Run `docker-compose run` to spawn up the image. This will run a server at `localhost:8000`
+## 2. Pipenv
+- Install pipenv on your system using `pip3 install pipenv`
 - Then run `pipenv shell` inside this repo. This will create virtualenv for the project.
 - Then run `pipenv install` so that it installs all the dependencies required for the project.
 - Run `python main.py`. This will fire up the flask server and then you can run the stress-ng via REST!
+**If you face any issue with python version, change the python version in the pipfile to the one that is there on your system**

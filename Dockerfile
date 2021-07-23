@@ -12,4 +12,4 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY . .
 
-CMD pipenv run python main.py
+CMD python main.py

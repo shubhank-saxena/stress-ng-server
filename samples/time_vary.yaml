@@ -1,0 +1,18 @@
+operationMode : time
+
+total_time: 20
+
+task_run:
+  task1:
+    time_slot: 10
+    resource:
+      cpu: 10
+      disk: 12
+      io: 10
+
+  task2:
+    time_slot: 10
+    resource:
+      cpu: 10
+      disk: 12
+      io: 10

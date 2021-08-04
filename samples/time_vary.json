@@ -1,8 +1,8 @@
 {   
-    "total_time" : "time",
+    "total_time" : 20,
     "task_run" : {
         "task1": {
-            "time_slot" : "time",
+            "time_slot" : 10,
             "resources" : {
                 "cpu": 10,
                 "disk": 12,
@@ -10,7 +10,7 @@
             }
         },
         "task2": {
-            "time_slot" : "time",
+            "time_slot" : 10,
             "resources" : {
                 "cpu": 10,
                 "disk": 12,

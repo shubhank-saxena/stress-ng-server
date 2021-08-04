@@ -7,23 +7,34 @@ from nested_lookup import nested_lookup
 
 app = Flask(__name__)
 
-
 @app.route("/v1/runtask/fileupload/", methods=["GET", "POST"])
 def postFile():
     if request.method == "POST":
         file = request.files["file"].read()
         if file:
             yaml_file = yaml.safe_load(file)
-            # print(yaml_file)
             if yaml_file["operationMode"] == "step":
                 return redirect(url_for(".postJSON", content=yaml_file))
             elif yaml_file["operationMode"] == "time":
-                return redirect(url_for("postJson"), code=307)
+                return redirect(url_for(".postJson", content=ymal_file))
     return "File Uploaded"
 
 
+def spawn_process(cpu,disk,io, time):
+       
+    process = subprocess.Popen(
+        f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}",
+        shell=True,
+        stdout=subprocess.PIPE,
+        close_fds=True,
+    )
+    process.stdout.read()
+
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
+    
+    subprocess.Popen("pkill stress-ng",shell=True,stdout=subprocess.PIPE,close_fds=True,)
+
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
 
@@ -31,6 +42,7 @@ def postJson():
     total_time = content["total_time"]
     run_times = nested_lookup("time_slot", content)
     tasks = nested_lookup("resources", content)
+    
 
     if sum(run_times) != total_time:
         return "Time slots does not match total time", 404
@@ -40,17 +52,16 @@ def postJson():
             disk = task.get("disk", 0)
             io = task.get("io", 0)
 
-            subprocess.Popen(
-                f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}",
-                shell=True,
-                stdout=subprocess.PIPE,
-            ).stdout.read()
-
-        return "Tasks run successfully"
+            spawn_process(cpu,disk,io,time)
+        
+    return "Tasks run successfully"
 
 
 @app.route("/v1/runtask/step_vary", methods=["GET", "POST"])
 def postJSON():
+    
+    subprocess.Popen("pkill stress-ng",shell=True,stdout=subprocess.PIPE,close_fds=True,)
+
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
 
@@ -63,20 +74,16 @@ def postJSON():
     disk = start_load.get("disk", 0)
     io = start_load.get("io", 0)
 
+
     for time in range(1, end_time, time_step):
 
-        subprocess.Popen(
-            f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}",
-            shell=True,
-            stdout=subprocess.PIPE,
-        ).stdout.read()
-
+        spawn_process(cpu,disk,io,time)
+        
         cpu = cpu + step_load.get("cpu", 0)
         disk = cpu + step_load.get("disk", 0)
         io = cpu + step_load.get("io", 0)
 
     return "Tasks run successfully"
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)

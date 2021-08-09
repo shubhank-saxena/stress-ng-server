@@ -10,7 +10,7 @@ app = Flask(__name__)
 CMD_PREFIX = 'cmd : '
 update_pids = []
 
-def run_task(cmd, logger, msg=None, check_error=False):
+def run_task(cmd, logger=None, msg=None, check_error=False):
     """Run task, report errors and log overall status.
     Run given task using ``subprocess.Popen``. Log the commands
     used and any errors generated. Prints stdout to screen if
@@ -141,7 +141,7 @@ def terminate_task(pid, signal='-15', sleep=10, logger=None):
         settings.setValue('_EXECUTED_PIDS', pids)
 
 
-def terminate_all_tasks(logger):
+def terminate_all_tasks(logger=None):
     """Terminate all processes executed by vsperf, just for case they were not
     terminated by standard means.
     """
@@ -194,7 +194,7 @@ def postJson():
 @app.route("/v1/runtask/step_vary", methods=["GET", "POST"])
 def postJSON():
     
-    terminate_all_tasks()
+    terminate_all_tasks(logger=None)
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))

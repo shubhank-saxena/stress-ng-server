@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  
   server:
     build: .
     image: shubhank/stress-ng-server
@@ -8,3 +9,6 @@ services:
     restart: always
     expose:
       - 8000
+
+  stress-ng:
+    image: alexeiled/stress-ng

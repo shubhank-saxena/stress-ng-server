@@ -7,8 +7,5 @@ services:
     image: shubhank/stress-ng-server
     container_name: stress-ng-server
     restart: always
-    expose:
-      - 8000
-
-  stress-ng:
-    image: alexeiled/stress-ng
+    ports:
+      - "8000:8000"

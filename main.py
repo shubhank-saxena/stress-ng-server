@@ -16,12 +16,13 @@ def update_pids(pid):
     """update list of running pids, so they can be terminated at the end
     """
     global update_pids
-    update_pids.append(pid)
+    list_pids.append(pid)
 
 def run_task (cpu,disk,io, time):
     """run the main task
     """
     cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}"
+    print(cmd)
 
     def handle_error(exception):
         """Handle errors by logging and optionally raising an exception.
@@ -31,7 +32,11 @@ def run_task (cpu,disk,io, time):
             {'cmd': ' '.join(cmd), 'exception': exception})
     
     try:
-        proc = subprocess.Popen(map(os.path.expanduser, cmd), stdout=None, bufsize=0)
+        proc = subprocess.Popen(f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}",
+            shell=True,
+            stdout=subprocess.PIPE,
+        )
+
         while True:
             update_pids(proc.pid)
 
@@ -172,4 +177,4 @@ def postJSON():
     return "Tasks run successfully"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=False)

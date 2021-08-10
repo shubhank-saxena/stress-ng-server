@@ -1,38 +1,36 @@
 import json
-import locale
-import os
 import subprocess
+import time
 
 import yaml
 from flask import Flask, redirect, request, url_for
 from nested_lookup import nested_lookup
+
+from tools import systeminfo
 
 app = Flask(__name__)
 
 CMD_PREFIX = 'cmd : '
 list_pids = []
 
+
 def update_pids(pid):
-    """update list of running pids, so they can be terminated at the end
-    """
+    """update list of running pids, so they can be terminated at the end"""
     global update_pids
     list_pids.append(pid)
 
-def run_task (cpu,disk,io, time):
-    """run the main task
-    """
-    cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}"
-    print(cmd)
+
+def run_task(cpu, disk, io, time_run):
+    """run the main task"""
+    cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
 
     def handle_error(exception):
-        """Handle errors by logging and optionally raising an exception.
-        """
-        print(
-            'Unable to execute %(cmd)s. Exception: %(exception)s',
-            {'cmd': ' '.join(cmd), 'exception': exception})
-    
+        """Handle errors by logging and optionally raising an exception."""
+        print('Unable to execute %(cmd)s. Exception: %(exception)s', {'cmd': ' '.join(cmd), 'exception': exception})
+
     try:
-        proc = subprocess.Popen(f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time}",
+        proc = subprocess.Popen(
+            cmd,
             shell=True,
             stdout=subprocess.PIPE,
         )
@@ -42,11 +40,6 @@ def run_task (cpu,disk,io, time):
 
     except OSError as ex:
         handle_error(ex)
-
-    else:
-        if proc.returncode:
-            ex = subprocess.CalledProcessError(proc.returncode, cmd, stderr)
-            handle_error(ex)
 
 
 def terminate_task_subtree(pid, signal='-15', sleep=10, logger=None):
@@ -72,6 +65,7 @@ def terminate_task_subtree(pid, signal='-15', sleep=10, logger=None):
     for child in children:
         terminate_task(child, signal, sleep)
 
+
 def terminate_task(pid, signal='-15', sleep=10):
     """Terminate process with given pid
     Function will sent given signal to the process. In case
@@ -82,7 +76,7 @@ def terminate_task(pid, signal='-15', sleep=10):
     :param sleep: Maximum delay in seconds after signal is sent
     """
     global list_pids
-    
+
     if systeminfo.pid_isalive(pid):
         run_task(['sudo', 'kill', signal, str(pid)])
         for dummy in range(sleep):
@@ -94,7 +88,7 @@ def terminate_task(pid, signal='-15', sleep=10):
             terminate_task(pid, '-9', sleep)
 
     if pid in list_pids:
-        pids.remove(pid)
+        list_pids.remove(pid)
 
 
 def terminate_all_tasks():
@@ -107,6 +101,7 @@ def terminate_all_tasks():
             terminate_task_subtree(pid)
         list_pids = []
 
+
 @app.route("/v1/runtask/fileupload/", methods=["GET", "POST"])
 def postFile():
     if request.method == "POST":
@@ -116,8 +111,9 @@ def postFile():
             if yaml_file["operationMode"] == "step":
                 return redirect(url_for(".postJSON", content=yaml_file))
             elif yaml_file["operationMode"] == "time":
-                return redirect(url_for(".postJson", content=ymal_file))
+                return redirect(url_for(".postJson", content=yaml_file))
     return "File Uploaded"
+
 
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
@@ -132,18 +128,17 @@ def postJson():
     total_time = content["total_time"]
     run_times = nested_lookup("time_slot", content)
     tasks = nested_lookup("resources", content)
-    
 
     if sum(run_times) != total_time:
         return "Time slots does not match total time", 404
     else:
-        for time, task in zip(run_times, tasks):
+        for time_run, task in zip(run_times, tasks):
             cpu = task.get("cpu", 0)
             disk = task.get("disk", 0)
             io = task.get("io", 0)
 
-            run_task(cpu,disk,io,time)
-        
+            run_task(cpu, disk, io, time_run)
+
     return "Tasks run successfully"
 
 
@@ -165,16 +160,16 @@ def postJSON():
     disk = start_load.get("disk", 0)
     io = start_load.get("io", 0)
 
+    for time_run in range(1, end_time, time_step):
 
-    for time in range(1, end_time, time_step):
+        run_task(cpu, disk, io, time_run)
 
-        run_task(cpu,disk,io,time)
-        
         cpu = cpu + step_load.get("cpu", 0)
         disk = cpu + step_load.get("disk", 0)
         io = cpu + step_load.get("io", 0)
 
     return "Tasks run successfully"
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=False)

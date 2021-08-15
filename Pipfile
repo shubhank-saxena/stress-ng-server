@@ -10,6 +10,8 @@ nested-lookup = "*"
 pyyaml = "*"
 werkzeug = "*"
 distro = "*"
+pexpect = "*"
+netaddr = "*"
 
 [dev-packages]
 

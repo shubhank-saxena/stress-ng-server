@@ -9,6 +9,7 @@ flask-restful = "*"
 nested-lookup = "*"
 pyyaml = "*"
 werkzeug = "*"
+distro = "*"
 
 [dev-packages]
 

@@ -47,7 +47,7 @@ def postFile():
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
 
-    terminate_all_tasks()
+    terminate_all_tasks(logger='./debug.log')
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
@@ -66,7 +66,7 @@ def postJson():
             io = task.get("io", 0)
 
             cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
-            run_background_task(cmd)
+            run_background_task(cmd, logger='./debug.log')
 
     return "Tasks run successfully"
 
@@ -74,7 +74,7 @@ def postJson():
 @app.route("/v1/runtask/step_vary", methods=["GET", "POST"])
 def postJSON():
 
-    terminate_all_tasks()
+    terminate_all_tasks(logger='./debug.log')
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
@@ -91,7 +91,7 @@ def postJSON():
     for time_run in range(1, end_time, time_step):
 
         cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
-        run_background_task(cmd)
+        run_background_task(cmd, logger='./debug.log')
 
         cpu = cpu + step_load.get("cpu", 0)
         disk = cpu + step_load.get("disk", 0)
@@ -101,4 +101,4 @@ def postJSON():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=False)
+    app.run(host="0.0.0.0", port=8000, debug=True)

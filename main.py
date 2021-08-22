@@ -10,28 +10,6 @@ from tools.tasks import run_background_task, terminate_all_tasks
 
 app = Flask(__name__)
 
-# def run_task(cpu, disk, io, time_run):
-#     """run the main task"""
-#     cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
-
-#     def handle_error(exception):
-#         """Handle errors by logging and optionally raising an exception."""
-#         print('Unable to execute %(cmd)s. Exception: %(exception)s', {'cmd': ' '.join(cmd), 'exception': exception})
-
-#     try:
-#         proc = subprocess.Popen(
-#             cmd,
-#             shell=True,
-#             stdout=subprocess.PIPE,
-#         )
-
-#         while True:
-#             update_pids(proc.pid)
-
-#     except OSError as ex:
-#         handle_error(ex)
-
-
 @app.route("/v1/runtask/fileupload/", methods=["GET", "POST"])
 def postFile():
     if request.method == "POST":
@@ -48,7 +26,7 @@ def postFile():
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
 
-    # terminate_all_tasks(logger)
+    terminate_all_tasks(logging.getLogger(__name__))
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
@@ -75,7 +53,7 @@ def postJson():
 @app.route("/v1/runtask/step_vary", methods=["GET", "POST"])
 def postJSON():
 
-    # terminate_all_tasks(logger)
+    terminate_all_tasks(logging.getLogger(__name__))
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))

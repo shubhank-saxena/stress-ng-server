@@ -1,4 +1,5 @@
 import json
+import logging
 import subprocess
 
 import yaml
@@ -47,7 +48,7 @@ def postFile():
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
 
-    terminate_all_tasks(logger='./debug.log')
+    # terminate_all_tasks(logger)
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
@@ -74,7 +75,7 @@ def postJson():
 @app.route("/v1/runtask/step_vary", methods=["GET", "POST"])
 def postJSON():
 
-    terminate_all_tasks(logger='./debug.log')
+    # terminate_all_tasks(logger)
 
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
@@ -91,7 +92,7 @@ def postJSON():
     for time_run in range(1, end_time, time_step):
 
         cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
-        run_background_task(cmd, logger='./debug.log')
+        run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
         cpu = cpu + step_load.get("cpu", 0)
         disk = cpu + step_load.get("disk", 0)

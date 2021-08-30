@@ -46,12 +46,12 @@ def postJson():
     else:
         for time_run, task in zip(run_times, tasks):
             cpu = tasks.get("cpu", 0)
-            disk_rate = tasks.get("memrate", 0) #--memrate N
-            disk_size = tasks.get("hdd-bytes", 0)
-            tcp_workers = tasks.get("tcp-workers", 0)
-            tcp_destination = tasks.get("tcp-domain","localhost")
-            udp_workers = tasks.get("udp-workers",0)
-            udp_destination = tasks.get("udp-domain","localhost")
+            disk_rate = tasks["disk"].get("memrate", 0)
+            disk_size = tasks["disk"].get("hdd-bytes", 0)
+            tcp_workers = tasks["network"]["tcp"].get("tcp-workers", 0)
+            tcp_destination = tasks["network"]["tcp"].get("tcp-domain","localhost")
+            udp_workers = tasks["network"]["udp"].get("udp-workers",0)
+            udp_destination = tasks["network"]["udp"].get("udp-domain","localhost")
 
             cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
@@ -73,23 +73,22 @@ def postJSON():
     end_time = content["end_time"]
 
     cpu = start_load.get("cpu", 0)
-    disk_rate = start_load.get("memrate", 0)
-    disk_size = start_load.get("hdd-bytes", 0)
-    tcp_workers = start_load.get("tcp-workers", 0)
-    tcp_destination = start_load.get("tcp-domain","localhost")
-    udp_workers = start_load.get("udp-workers", 0)
-    udp_destination = start_load.get("udp-domain","localhost")
+    disk_rate = start_load["disk"].get("memrate", 0)
+    disk_size = start_load["disk"].get("hdd-bytes", 0)
+    tcp_workers = start_load["network"]["tcp"].get("tcp-workers", 0)
+    tcp_destination = start_load["network"]["tcp"].get("tcp-domain","localhost")
+    udp_workers = start_load["network"]["udp"].get("udp-workers", 0)
+    udp_destination = start_load["network"]["udp"].get("udp-domain","localhost")
 
     for time_run in range(0, end_time, time_step):
-
         cmd = cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
         run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
         cpu = cpu + step_load.get("cpu", 0)
-        disk_rate = disk_rate + step_load.get("memrate", 0)
-        disk_size = disk_size + step_load.get("hdd-bytes", 0)
-        tcp_workers = tcp_workers + step_load.get("tcp-workers", 0)
-        udp_workers = udp_workers + step_load.get("udp-workers",0)
+        disk_rate = disk_rate + step_load["disk"].get("memrate", 0)
+        disk_size = disk_size + step_load["disk"].get("hdd-bytes", 0)
+        tcp_workers = tcp_workers + step_load["network"]["tcp"].get("tcp-workers", 0)
+        udp_workers = udp_workers + step_load["network"]["udp"].get("udp-workers",0)
 
     return "Tasks run successfully"
 

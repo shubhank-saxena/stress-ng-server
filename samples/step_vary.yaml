@@ -2,14 +2,29 @@ operationMode : step
 
 start_load:
   cpu: 10
-  disk: 12
-  io: 10
+  disk: 
+    memrate: 10
+    hdd-bytes: 10
+  network:
+    tcp: 
+      tcp-workers: 10
+      tcp-domain: localhost
+    udp:
+      udp-workers: 10
+      udp-domain: localhost
+
 
 time_step: 10
 
 step_load:
   cpu: 10
-  disk: 12
-  io: 10
+  disk: 
+    memrate: 10
+    hdd-bytes: 10
+  network:
+    tcp: 
+      tcp-workers: 10
+    udp:
+      udp-workers: 10
 
 end_time: 100

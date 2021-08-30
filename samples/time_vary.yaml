@@ -7,12 +7,28 @@ task_run:
     time_slot: 10
     resource:
       cpu: 10
-      disk: 12
-      io: 10
+      disk: 
+        memrate: 10
+        hdd-bytes: 10
+      network:
+        tcp: 
+          tcp-workers: 10
+          tcp-domain: localhost
+        udp:
+          udp-workers: 10
+          udp-domain: localhost
 
   task2:
     time_slot: 10
     resource:
       cpu: 10
-      disk: 12
-      io: 10
+      disk: 
+        memrate: 10
+        hdd-bytes: 10
+      network:
+        tcp: 
+          tcp-workers: 10
+          tcp-domain: localhost
+        udp:
+          udp-workers: 10
+          udp-domain: localhost

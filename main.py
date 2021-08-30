@@ -53,7 +53,7 @@ def postJson():
             udp_workers = tasks.get("udp-workers",0)
             udp_destination = tasks.get("udp-domain","localhost")
 
-            cmd = f"stress-ng --cpu {cpu} --memrate {disk_rate} --hdd-bytes {disk_size} --sock {tcp_workers} --sock-domain {tcp_destination} --udp {udp_workers} --udp-domain {udp_destination} -t {time_run}"
+            cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
 
     return "Tasks run successfully"
@@ -82,14 +82,14 @@ def postJSON():
 
     for time_run in range(0, end_time, time_step):
 
-        cmd = f"stress-ng --cpu {cpu} --memrate {disk_rate} --hdd-bytes {disk_size} --sock {tcp_workers} --sock-domain {tcp_destination} --udp {udp_workers} --udp-domain {udp_destination} -t {time_run}"
+        cmd = cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
         run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
         cpu = cpu + step_load.get("cpu", 0)
         disk_rate = disk_rate + step_load.get("memrate", 0)
         disk_size = disk_size + step_load.get("hdd-bytes", 0)
-        tcp_worker = tcp_worker + step_load.get("sock", 0)
-        udp_worker = udp_worker + step_load.get("udp",0)
+        tcp_workers = tcp_workers + step_load.get("tcp-workers", 0)
+        udp_workers = udp_workers + step_load.get("udp-workers",0)
 
     return "Tasks run successfully"
 

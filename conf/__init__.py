@@ -20,13 +20,12 @@ and any user provided settings file.
 
 # pylint: disable=invalid-name
 
-import ast
 import copy
-import logging
 import os
-import pprint
 import re
-
+import logging
+import pprint
+import ast
 import netaddr
 
 _LOGGER = logging.getLogger(__name__)
@@ -44,16 +43,16 @@ _EXTRA_TEST_PARAMS = ['TUNNEL_TYPE']
 #   #EVAL(2*#VMINDEX)
 _PARSE_PATTERN = r'(#[A-Z]+)(\(([^(),]+)(,([0-9]+))?\))?'
 
-
 class Settings(object):
-    """Holding class for settings."""
-
+    """Holding class for settings.
+    """
     def __init__(self):
         pass
 
     def _eval_param(self, param):
         # pylint: disable=invalid-name
-        """Helper function for expansion of references to vsperf parameters"""
+        """ Helper function for expansion of references to vsperf parameters
+        """
         if isinstance(param, str):
             # evaluate every #PARAM reference inside parameter itself
             macros = re.findall(r'#PARAM\((([\w\-]+)(\[[\w\[\]\-\'\"]+\])*)\)', param)
@@ -85,7 +84,8 @@ class Settings(object):
             return param
 
     def getValue(self, attr):
-        """Return a settings item value"""
+        """Return a settings item value
+        """
         if attr in self.__dict__:
             if attr == 'TEST_PARAMS':
                 return getattr(self, attr)
@@ -105,16 +105,19 @@ class Settings(object):
                 else:
                     return self._eval_param(master_value)
         else:
-            raise AttributeError("%r object has no attribute %r" % (self.__class__, attr))
+            raise AttributeError("%r object has no attribute %r" %
+                                 (self.__class__, attr))
 
     def hasValue(self, attr):
-        """Return true if key exists"""
+        """Return true if key exists
+        """
         if attr in self.__dict__:
             return True
         return False
 
     def __setattr__(self, name, value):
-        """Set a value"""
+        """Set a value
+        """
         # skip non-settings. this should exclude built-ins amongst others
         if not name.isupper():
             return
@@ -123,19 +126,21 @@ class Settings(object):
         super(Settings, self).__setattr__(name, value)
 
     def setValue(self, name, value):
-        """Set a value"""
+        """Set a value
+        """
         if name is not None and value is not None:
             super(Settings, self).__setattr__(name, value)
 
     def resetValue(self, attr):
         """If parameter was overridden by TEST_PARAMS, then it will
-        be set to its original value.
+           be set to its original value.
         """
         if attr in self.__dict__['TEST_PARAMS']:
             self.__dict__['TEST_PARAMS'].pop(attr)
 
     def load_from_file(self, path):
-        """Update ``settings`` with values found in module at ``path``."""
+        """Update ``settings`` with values found in module at ``path``.
+        """
         import imp
 
         custom_settings = imp.load_source('custom_settings', path)
@@ -164,7 +169,8 @@ class Settings(object):
             Provide a suitable function for sort's key arg
             """
             match_object = regex.search(os.path.basename(filename))
-            return [int(match_object.group('digit_part')), match_object.group('alfa_part')]
+            return [int(match_object.group('digit_part')),
+                    match_object.group('alfa_part')]
 
         # get full file path to all files & dirs in dir_path
         file_paths = os.listdir(dir_path)
@@ -172,7 +178,8 @@ class Settings(object):
 
         # filter to get only those that are a files, with a leading
         # digit and end in '.conf'
-        file_paths = [x for x in file_paths if os.path.isfile(x) and regex.search(os.path.basename(x))]
+        file_paths = [x for x in file_paths if os.path.isfile(x) and
+                      regex.search(os.path.basename(x))]
 
         # sort ascending on the leading digits and afla (e.g. 03_, 05a_)
         file_paths.sort(key=get_prefix)
@@ -191,7 +198,8 @@ class Settings(object):
             if conf[key] is not None:
                 if isinstance(conf[key], dict):
                     # recursively update dict items, e.g. TEST_PARAMS
-                    setattr(self, key.upper(), merge_spec(getattr(self, key.upper()), conf[key]))
+                    setattr(self, key.upper(),
+                            merge_spec(getattr(self, key.upper()), conf[key]))
                 else:
                     setattr(self, key.upper(), conf[key])
 
@@ -223,12 +231,14 @@ class Settings(object):
         unknown_keys = []
         for key in settings.getValue('TEST_PARAMS'):
             if key == 'TEST_PARAMS':
-                raise RuntimeError('It is not allowed to define TEST_PARAMS ' 'as a test parameter')
+                raise RuntimeError('It is not allowed to define TEST_PARAMS '
+                                   'as a test parameter')
             if key not in self.__dict__ and key not in _EXTRA_TEST_PARAMS:
                 unknown_keys.append(key)
 
         if unknown_keys:
-            raise RuntimeError('Test parameters contain unknown configuration ' 'parameter(s): {}'.format(', '.join(unknown_keys)))
+            raise RuntimeError('Test parameters contain unknown configuration '
+                               'parameter(s): {}'.format(', '.join(unknown_keys)))
 
     def check_vm_settings(self, vm_number):
         """
@@ -318,24 +328,26 @@ class Settings(object):
     # validation methods used by step driven testcases
     #
     def validate_getValue(self, result, attr):
-        """Verifies, that correct value was returned"""
+        """Verifies, that correct value was returned
+        """
         # getValue must be called to expand macros and apply
         # values from TEST_PARAM option
         assert result == self.getValue(attr)
         return True
 
     def validate_setValue(self, _dummy_result, name, value):
-        """Verifies, that value was correctly set"""
+        """Verifies, that value was correctly set
+        """
         assert value == self.__dict__[name]
         return True
 
     def validate_resetValue(self, _dummy_result, attr):
-        """Verifies, that value was correctly reset"""
-        return 'TEST_PARAMS' not in self.__dict__ or attr not in self.__dict__['TEST_PARAMS']
-
+        """Verifies, that value was correctly reset
+        """
+        return 'TEST_PARAMS' not in self.__dict__ or \
+               attr not in self.__dict__['TEST_PARAMS']
 
 settings = Settings()
-
 
 def get_test_param(key, default=None):
     """Retrieve value for test param ``key`` if available.
@@ -347,7 +359,6 @@ def get_test_param(key, default=None):
     """
     test_params = settings.getValue('TEST_PARAMS')
     return test_params.get(key, default) if test_params else default
-
 
 def merge_spec(orig, new):
     """Merges ``new`` dict with ``orig`` dict, and returns orig.

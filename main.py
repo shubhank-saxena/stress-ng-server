@@ -1,12 +1,17 @@
 import json
 import logging
+import os
 import subprocess
 
 import yaml
+from conf import settings
 from flask import Flask, redirect, request, url_for
 from nested_lookup import nested_lookup
 
 from tools.tasks import run_background_task, terminate_all_tasks
+
+_CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+settings.load_from_dir(os.path.join(_CURR_DIR, 'conf'))
 
 app = Flask(__name__)
 
@@ -44,8 +49,7 @@ def postJson():
             disk = task.get("disk", 0)
             io = task.get("io", 0)
 
-            cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
-            run_background_task(cmd, logger='./debug.log')
+            cmd = ["stress-ng", "--cpu", f"{cpu}", "--hdd", f"{disk}", "--io", f"{io}", "-t", f"{time_run}"]
 
     return "Tasks run successfully"
 
@@ -69,7 +73,7 @@ def postJSON():
 
     for time_run in range(1, end_time, time_step):
 
-        cmd = f"stress-ng --cpu {cpu} --hdd {disk} --io {io} -t {time_run}"
+        cmd = ["stress-ng", "--cpu", f"{cpu}", "--hdd", f"{disk}", "--io", f"{io}", "-t", f"{time_run}"]
         run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
         cpu = cpu + step_load.get("cpu", 0)

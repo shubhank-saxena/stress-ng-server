@@ -15,20 +15,18 @@
 """Tools for access to OS details
 """
 
-import locale
 import os
 import platform
-import re
 import subprocess
-
+import locale
+import re
 import distro
 
 from conf import settings as S
 from tools.version import Version
 
-
 def match_line(file_name, pattern):
-    """loops through given file and returns first line matching given pattern
+    """ loops through given file and returns first line matching given pattern
 
     :returns: string with the matching line without end of line or None
     """
@@ -45,14 +43,12 @@ def match_line(file_name, pattern):
     except OSError:
         return None
 
-
 def get_os():
     """Get distro name.
 
     :returns: Return distro name as a string
     """
     return ' '.join(distro.linux_distribution())
-
 
 def get_kernel():
     """Get kernel version.
@@ -61,7 +57,6 @@ def get_kernel():
     """
     return platform.release()
 
-
 def get_cpu():
     """Get CPU information.
 
@@ -69,7 +64,6 @@ def get_cpu():
     """
     cpu = match_line('/proc/cpuinfo', 'model name')
     return cpu.split(':')[1] if cpu else cpu
-
 
 def get_nic():
     """Get NIC(s) information.
@@ -85,7 +79,6 @@ def get_nic():
             if line.startswith(nic['pci'][-7:]):
                 nics.append(''.join(line.split(':')[2:]).strip())
     return nics
-
 
 def get_platform():
     """Get platform information.
@@ -103,11 +96,11 @@ def get_platform():
     with open('/sys/class/dmi/id/board_name', 'r') as file_:
         output.append(file_.readline().rstrip())
 
-    num_nodes = len([name for name in os.listdir('/sys/devices/system/node/') if name.startswith('node')])
+    num_nodes = len([name for name in os.listdir(
+        '/sys/devices/system/node/') if name.startswith('node')])
     output.append(''.join(['[', str(num_nodes), ' sockets]']))
 
     return ' '.join(output).strip()
-
 
 def get_cpu_cores():
     """Get number of CPU cores.
@@ -126,7 +119,6 @@ def get_cpu_cores():
         cores = 1
     return cores
 
-
 def get_memory():
     """Get memory information.
 
@@ -134,7 +126,6 @@ def get_memory():
     """
     memory = match_line('/proc/meminfo', 'MemTotal')
     return memory.split(':')[1].strip() if memory else memory
-
 
 def get_memory_bytes():
     """Get memory information in bytes
@@ -156,48 +147,46 @@ def get_memory_bytes():
 
     return int(mem)
 
-
 def get_pids(proc_names_list):
-    """Get pid(s) of process(es) with given name(s)
+    """ Get pid(s) of process(es) with given name(s)
 
     :returns: list with pid(s) of given processes or None if processes
         with given names are not running
     """
 
     try:
-        pids = subprocess.check_output(['sudo', 'LC_ALL=' + S.getValue('DEFAULT_CMD_LOCALE'), 'pidof'] + proc_names_list)
+        pids = subprocess.check_output(['sudo', 'LC_ALL=' + S.getValue('DEFAULT_CMD_LOCALE'), 'pidof']
+                                       + proc_names_list)
     except subprocess.CalledProcessError:
         # such process isn't running
         return None
 
     return list(map(str, map(int, pids.split())))
 
-
 def get_pid(proc_name_str):
-    """Get pid(s) of process with given name
+    """ Get pid(s) of process with given name
 
     :returns: list with pid(s) of given process or None if process
         with given name is not running
     """
     return get_pids([proc_name_str])
 
-
 def pid_isalive(pid):
-    """Checks if given PID is alive
+    """ Checks if given PID is alive
 
     :param pid: PID of the process
     :returns: True if given process is running, False otherwise
     """
     return os.path.isdir('/proc/' + str(pid))
 
-
 def get_bin_version(binary, regex):
-    """get version of given binary selected by given regex
+    """ get version of given binary selected by given regex
 
     :returns: version string or None
     """
     try:
-        output = str(subprocess.check_output(binary, stderr=subprocess.STDOUT, shell=True).decode().rstrip('\n'))
+        output = str(subprocess.check_output(
+            binary, stderr=subprocess.STDOUT, shell=True).decode().rstrip('\n'))
     except subprocess.CalledProcessError:
         return None
 
@@ -207,52 +196,56 @@ def get_bin_version(binary, regex):
     else:
         return None
 
-
 def get_git_tag(path):
-    """get tag of recent commit from repository located at 'path'
+    """ get tag of recent commit from repository located at 'path'
 
     :returns: git tag in form of string with commit hash or None if there
         isn't any git repository at given path
     """
     try:
         if os.path.isdir(path):
-            return subprocess.check_output('cd {}; git rev-parse HEAD'.format(path), shell=True, stderr=subprocess.DEVNULL).decode().rstrip('\n')
+            return subprocess.check_output('cd {}; git rev-parse HEAD'.format(path), shell=True,
+                                           stderr=subprocess.DEVNULL).decode().rstrip('\n')
         elif os.path.isfile(path):
-            return subprocess.check_output('cd $(dirname {}); git log -1 --pretty="%H" {}'.format(path, path), shell=True, stderr=subprocess.DEVNULL).decode().rstrip('\n')
+            return subprocess.check_output('cd $(dirname {}); git log -1 --pretty="%H" {}'.format(path, path),
+                                           shell=True, stderr=subprocess.DEVNULL).decode().rstrip('\n')
         else:
             return None
     except subprocess.CalledProcessError:
         return None
 
-
 # This function uses long switch per purpose, so let us suppress pylint warning too-many-branches
 # pylint: disable=too-many-branches, too-many-statements
 def get_version(app_name):
-    """Get version of given application and its git tag
+    """ Get version of given application and its git tag
 
     :returns: dictionary {'name' : app_name, 'version' : app_version, 'git_tag' : app_git_tag) in case that
         version or git tag are not known or not applicaple, than None is returned for any unknown value
 
     """
     app_version_file = {
-        'ovs': r'Open vSwitch\) ([0-9.]+)',
-        'testpmd': r'RTE Version: \'\S+ ([0-9.]+)',
-        'qemu': r'QEMU emulator version ([0-9.]+)',
-        'loopback_l2fwd': os.path.join(S.getValue('ROOT_DIR'), 'src/l2fwd/l2fwd.c'),
-        'ixnet': os.path.join(S.getValue('TRAFFICGEN_IXNET_LIB_PATH'), 'pkgIndex.tcl'),
-        'ixia': os.path.join(S.getValue('TRAFFICGEN_IXIA_ROOT_DIR'), 'lib/ixTcl1.0/ixTclHal.tcl'),
-        'trex': os.path.join(S.getValue('ROOT_DIR'), 'src/trex/trex'),
+        'ovs' : r'Open vSwitch\) ([0-9.]+)',
+        'testpmd' : r'RTE Version: \'\S+ ([0-9.]+)',
+        'qemu' : r'QEMU emulator version ([0-9.]+)',
+        'loopback_l2fwd' : os.path.join(S.getValue('ROOT_DIR'), 'src/l2fwd/l2fwd.c'),
+        'ixnet' : os.path.join(S.getValue('TRAFFICGEN_IXNET_LIB_PATH'), 'pkgIndex.tcl'),
+        'ixia' : os.path.join(S.getValue('TRAFFICGEN_IXIA_ROOT_DIR'), 'lib/ixTcl1.0/ixTclHal.tcl'),
+        'trex' : os.path.join(S.getValue('ROOT_DIR'), 'src/trex/trex'),
     }
+
+
 
     app_version = None
     app_git_tag = None
 
     if app_name.lower().startswith('ovs'):
-        app_version = get_bin_version('{} --version'.format(S.getValue('TOOLS')['ovs-vswitchd']), app_version_file['ovs'])
+        app_version = get_bin_version('{} --version'.format(S.getValue('TOOLS')['ovs-vswitchd']),
+                                      app_version_file['ovs'])
         if 'vswitch_src' in S.getValue('TOOLS'):
             app_git_tag = get_git_tag(S.getValue('TOOLS')['vswitch_src'])
     elif app_name.lower() in ['dpdk', 'testpmd']:
-        app_version = get_bin_version('{} -v -h'.format(S.getValue('TOOLS')['testpmd']), app_version_file['testpmd'])
+        app_version = get_bin_version('{} -v -h'.format(S.getValue('TOOLS')['testpmd']),
+                                      app_version_file['testpmd'])
         # we have to consult PATHS settings to be sure, that dpdk/testpmd
         # were build from the sources
         if S.getValue('PATHS')[app_name.lower()]['type'] == 'src':
@@ -265,7 +258,8 @@ def get_version(app_name):
         # TOOLS dictionary is created during runtime and it is not
         # available in some vsperf modes (e.g. -m trafficgen), thus
         # following definition can't be part of app_version_file dict above
-        app_file = os.path.join(S.getValue('TOOLS')['dpdk_src'], 'lib/librte_eal/common/include/rte_version.h')
+        app_file = os.path.join(S.getValue('TOOLS')['dpdk_src'],
+                                'lib/librte_eal/common/include/rte_version.h')
         with open(app_file) as file_:
             for line in file_:
                 if not line.strip():
@@ -307,7 +301,8 @@ def get_version(app_name):
             app_version = '.'.join(tmp_ver)
         app_git_tag = get_git_tag(S.getValue('TOOLS')['dpdk_src'])
     elif app_name.lower().startswith('qemu'):
-        app_version = get_bin_version('{} --version'.format(S.getValue('TOOLS')['qemu-system']), app_version_file['qemu'])
+        app_version = get_bin_version('{} --version'.format(S.getValue('TOOLS')['qemu-system']),
+                                      app_version_file['qemu'])
         if 'qemu_src' in S.getValue('TOOLS'):
             app_git_tag = get_git_tag(S.getValue('TOOLS')['qemu_src'])
     elif app_name.lower() == 'ixnet':
@@ -344,9 +339,8 @@ def get_version(app_name):
 
     return Version(app_name, app_version, app_git_tag)
 
-
 def get_loopback_version(loopback_app_name):
-    """Get version of given guest loopback application and its git tag
+    """ Get version of given guest loopback application and its git tag
 
     :returns: dictionary {'name' : app_name, 'version' : app_version, 'git_tag' : app_git_tag) in case that
         version or git tag are not known or not applicaple, than None is returned for any unknown value

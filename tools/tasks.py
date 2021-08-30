@@ -15,25 +15,25 @@
 """Task management helper functions and classes.
 """
 
-import locale
-import logging
-import os
 import select
 import subprocess
-import sys
+import logging
 import threading
+import sys
+import os
+import locale
 import time
-
 import pexpect
 
 from conf import settings
 from tools import systeminfo
 
+
 CMD_PREFIX = 'cmd : '
 
-
 def _get_stdout():
-    """Get stdout value for ``subprocess`` calls."""
+    """Get stdout value for ``subprocess`` calls.
+    """
     stdout = None
 
     if settings.getValue('VERBOSITY') != 'debug':
@@ -57,10 +57,12 @@ def run_task(cmd, logger, msg=None, check_error=False):
 
     :returns: (stdout, stderr)
     """
-
     def handle_error(exception):
-        """Handle errors by logging and optionally raising an exception."""
-        logger.error('Unable to execute %(cmd)s. Exception: %(exception)s', {'cmd': ' '.join(cmd), 'exception': exception})
+        """Handle errors by logging and optionally raising an exception.
+        """
+        logger.error(
+            'Unable to execute %(cmd)s. Exception: %(exception)s',
+            {'cmd': ' '.join(cmd), 'exception': exception})
         if check_error:
             raise exception
 
@@ -74,7 +76,9 @@ def run_task(cmd, logger, msg=None, check_error=False):
     # pylint: disable=too-many-nested-blocks
     logger.debug('%s%s', CMD_PREFIX, ' '.join(cmd))
     try:
-        proc = subprocess.Popen(map(os.path.expanduser, cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
+        proc = subprocess.Popen(map(os.path.expanduser, cmd),
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, bufsize=0)
 
         while True:
             reads = [proc.stdout.fileno(), proc.stderr.fileno()]
@@ -107,15 +111,15 @@ def run_task(cmd, logger, msg=None, check_error=False):
             ex = subprocess.CalledProcessError(proc.returncode, cmd, stderr)
             handle_error(ex)
 
-    return ('\n'.join(sout.decode(my_encoding).strip() for sout in stdout), ('\n'.join(sout.decode(my_encoding).strip() for sout in stderr)))
-
+    return ('\n'.join(sout.decode(my_encoding).strip() for sout in stdout),
+            ('\n'.join(sout.decode(my_encoding).strip() for sout in stderr)))
 
 def update_pids(pid):
-    """update list of running pids, so they can be terminated at the end"""
+    """update list of running pids, so they can be terminated at the end
+    """
     pids = settings.getValue('_EXECUTED_PIDS')
     pids.append(pid)
     settings.setValue('_EXECUTED_PIDS', pids)
-
 
 def run_background_task(cmd, logger, msg):
     """Run task in background and log when started.
@@ -163,7 +167,6 @@ def run_interactive_task(cmd, logger, msg):
 
     return child
 
-
 def terminate_task_subtree(pid, signal='-15', sleep=10, logger=None):
     """Terminate given process and all its children
 
@@ -189,7 +192,6 @@ def terminate_task_subtree(pid, signal='-15', sleep=10, logger=None):
     # just for case children were kept alive
     for child in children:
         terminate_task(child, signal, sleep, logger)
-
 
 def terminate_task(pid, signal='-15', sleep=10, logger=None):
     """Terminate process with given pid
@@ -219,7 +221,6 @@ def terminate_task(pid, signal='-15', sleep=10, logger=None):
         pids.remove(pid)
         settings.setValue('_EXECUTED_PIDS', pids)
 
-
 def terminate_all_tasks(logger):
     """Terminate all processes executed by vsperf, just for case they were not
     terminated by standard means.
@@ -231,7 +232,6 @@ def terminate_all_tasks(logger):
             terminate_task_subtree(pid, logger=logger)
         settings.setValue('_EXECUTED_PIDS', [])
 
-
 class Process(object):
     """Control an instance of a long-running process.
 
@@ -239,7 +239,6 @@ class Process(object):
     ``run_interactive_task`` function above (with some extra helper
     functions).
     """
-
     _cmd = None
     _child = None
     _logfile = None
@@ -252,27 +251,33 @@ class Process(object):
     # context manager
 
     def __enter__(self):
-        """Start process instance using context manager."""
+        """Start process instance using context manager.
+        """
         self.start()
         return self
 
     def __exit__(self, type_, value, traceback):
-        """Shutdown process instance."""
+        """Shutdown process instance.
+        """
         self.kill()
 
     # startup/shutdown
 
     def start(self):
-        """Start process instance."""
+        """Start process instance.
+        """
         self._start_process()
         if self._timeout > 0:
             self._expect_process()
 
     def _start_process(self):
-        """Start process instance."""
-        cmd = ' '.join(settings.getValue('SHELL_CMD') + ['"%s"' % ' '.join(self._cmd)])
+        """Start process instance.
+        """
+        cmd = ' '.join(settings.getValue('SHELL_CMD') +
+                       ['"%s"' % ' '.join(self._cmd)])
 
-        self._child = run_interactive_task(cmd, self._logger, 'Starting %s...' % self._proc_name)
+        self._child = run_interactive_task(cmd, self._logger,
+                                           'Starting %s...' % self._proc_name)
         self._child.logfile = open(self._logfile, 'w')
 
     def expect(self, msg, timeout=None):
@@ -288,7 +293,8 @@ class Process(object):
         self._expect_process(msg, timeout)
 
     def _expect_process(self, msg=None, timeout=None):
-        """Expect string from process."""
+        """Expect string from process.
+        """
         if not msg:
             msg = self._expect
         if not timeout:
@@ -301,10 +307,15 @@ class Process(object):
         try:
             self._child.expect([msg], timeout=timeout)
         except pexpect.EOF as exc:
-            self._logger.critical('An error occurred. Please check the logs (%s) for more' ' information. Exiting...', self._logfile)
+            self._logger.critical(
+                'An error occurred. Please check the logs (%s) for more'
+                ' information. Exiting...', self._logfile)
             raise exc
         except pexpect.TIMEOUT as exc:
-            self._logger.critical('Failed to execute in \'%d\' seconds. Please check the logs' ' (%s) for more information. Exiting...', timeout, self._logfile)
+            self._logger.critical(
+                'Failed to execute in \'%d\' seconds. Please check the logs'
+                ' (%s) for more information. Exiting...',
+                timeout, self._logfile)
             self.kill()
             raise exc
         except (Exception, KeyboardInterrupt) as exc:
@@ -324,7 +335,8 @@ class Process(object):
             if self.is_relinquished():
                 self._relinquish_thread.join()
 
-        self._logger.info('Log available at %s', self._logfile)
+        self._logger.info(
+            'Log available at %s', self._logfile)
 
     def is_relinquished(self):
         """Returns True if process is relinquished.
@@ -351,7 +363,9 @@ class Process(object):
 
         :returns: None
         """
-        run_task(['sudo', 'taskset', '-c', '-p', str(core), str(pid)], self._logger)
+        run_task(['sudo', 'taskset', '-c', '-p', str(core),
+                  str(pid)],
+                 self._logger)
 
     def affinitize(self, core):
         """Affinitize process to a specific ``core``.
@@ -370,7 +384,6 @@ class Process(object):
 
         Taken from: https://github.com/pexpect/pexpect/issues/90
         """
-
         def __init__(self, child):
             self.child = child
             threading.Thread.__init__(self)
@@ -407,7 +420,6 @@ class CustomProcess(Process):
     ``run_interactive_task`` function that checks for process execution
     and kills the process (assuming use of the context manager).
     """
-
     def __init__(self, cmd, timeout, logfile, expect, name):
         """Initialise process state.
 

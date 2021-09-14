@@ -41,19 +41,25 @@ def postJson():
     run_times = nested_lookup("time_slot", content)
     tasks = nested_lookup("resources", content)
 
+    #stress-ng --memrate 1  -t 20 --memrate-bytes 128M  --memrate-rd-mbs 256M --memrate-wr-mbs 512M.
+
+
+
     if sum(run_times) != total_time:
         return "Time slots does not match total time", 404
     else:
         for time_run, task in zip(run_times, tasks):
             cpu = tasks.get("cpu", 0)
             disk_rate = tasks["disk"].get("memrate", 0)
-            disk_size = tasks["disk"].get("hdd-bytes", 0)
+            disk_size = tasks["disk"].get("memrate-bytes", 0)
+            read_size = task["disk"].get("mem-read-size", 0)
+            write_size = task["disk"].get("mem-write-size", 0)
             tcp_workers = tasks["network"]["tcp"].get("tcp-workers", 0)
             tcp_destination = tasks["network"]["tcp"].get("tcp-domain","localhost")
             udp_workers = tasks["network"]["udp"].get("udp-workers",0)
             udp_destination = tasks["network"]["udp"].get("udp-domain","localhost")
 
-            cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
+            cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--memrate-bytes", f"{disk_size}", "--memrate-rd-mbs", f"{read_size}", "--memrate-wr-mbs", f"{write_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
 
     return "Tasks run successfully"
@@ -73,20 +79,24 @@ def postJSON():
     end_time = content["end_time"]
 
     cpu = start_load.get("cpu", 0)
-    disk_rate = start_load["disk"].get("memrate", 0)
-    disk_size = start_load["disk"].get("hdd-bytes", 0)
+    disk_rate = tasks["disk"].get("memrate", 0)
+    disk_size = tasks["disk"].get("memrate-bytes", 0)
+    read_size = task["disk"].get("mem-read-size", 0)
+    write_size = task["disk"].get("mem-write-size", 0)
     tcp_workers = start_load["network"]["tcp"].get("tcp-workers", 0)
     tcp_destination = start_load["network"]["tcp"].get("tcp-domain","localhost")
     udp_workers = start_load["network"]["udp"].get("udp-workers", 0)
     udp_destination = start_load["network"]["udp"].get("udp-domain","localhost")
 
     for time_run in range(0, end_time, time_step):
-        cmd = cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--hdd-bytes", f"{disk_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
+        cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--memrate-bytes", f"{disk_size}", "--memrate-rd-mbs", f"{read_size}", "--memrate-wr-mbs", f"{write_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
         run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
         cpu = cpu + step_load.get("cpu", 0)
         disk_rate = disk_rate + step_load["disk"].get("memrate", 0)
-        disk_size = disk_size + step_load["disk"].get("hdd-bytes", 0)
+        disk_size = disk_size + step_load["disk"].get("memrate-bytes", 0)
+        read_size = read_size + step_load["disk"].get("mem-read-size", 0)
+        write_size = write_size + step_load["disk"].get("mem-write-size", 0)
         tcp_workers = tcp_workers + step_load["network"]["tcp"].get("tcp-workers", 0)
         udp_workers = udp_workers + step_load["network"]["udp"].get("udp-workers",0)
 

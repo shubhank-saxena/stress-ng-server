@@ -12,6 +12,8 @@ werkzeug = "*"
 distro = "*"
 pexpect = "*"
 netaddr = "*"
+click = "*"
+requests = "*"
 
 [dev-packages]
 

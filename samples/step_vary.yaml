@@ -4,7 +4,9 @@ start_load:
   cpu: 10
   disk: 
     memrate: 10
-    hdd-bytes: 10
+    memrate-bytes: 120M
+    mem-read-size: 250M
+    mem-write-size: 200M
   network:
     tcp: 
       tcp-workers: 10
@@ -20,7 +22,9 @@ step_load:
   cpu: 10
   disk: 
     memrate: 10
-    hdd-bytes: 10
+    memrate-bytes: 120M
+    mem-read-size: 250M
+    mem-write-size: 200M
   network:
     tcp: 
       tcp-workers: 10

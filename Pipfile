@@ -12,10 +12,9 @@ werkzeug = "*"
 distro = "*"
 pexpect = "*"
 netaddr = "*"
-click = "*"
 requests = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.7"

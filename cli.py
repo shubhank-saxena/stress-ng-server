@@ -5,7 +5,7 @@ import requests
 BASE_URL = 'http://localhost:8000'
 print("Welcome to the stress-ng-cli tool!")
 
-input_file = input("Enter the location of the configuration file for stress-ng-cli")
+input_file = input("Enter the location of the configuration file for stress-ng-cli : \n")
 
 files = {}
 files['file'] = open(f'{os.path.abspath(input_file)}', 'rb')

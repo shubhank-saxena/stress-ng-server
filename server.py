@@ -36,28 +36,23 @@ def postJson():
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
 
-    content = request.get_json()
     total_time = content["total_time"]
     run_times = nested_lookup("time_slot", content)
-    tasks = nested_lookup("resources", content)
-
-    #stress-ng --memrate 1  -t 20 --memrate-bytes 128M  --memrate-rd-mbs 256M --memrate-wr-mbs 512M.
-
-
+    tasks = nested_lookup("resource", content)
 
     if sum(run_times) != total_time:
         return "Time slots does not match total time", 404
     else:
         for time_run, task in zip(run_times, tasks):
-            cpu = tasks.get("cpu", 0)
-            disk_rate = tasks["disk"].get("memrate", 0)
-            disk_size = tasks["disk"].get("memrate-bytes", 0)
+            cpu = task["cpu"]
+            disk_rate = task["disk"].get("memrate", 0)
+            disk_size = task["disk"].get("memrate-bytes", 0)
             read_size = task["disk"].get("mem-read-size", 0)
             write_size = task["disk"].get("mem-write-size", 0)
-            tcp_workers = tasks["network"]["tcp"].get("tcp-workers", 0)
-            tcp_destination = tasks["network"]["tcp"].get("tcp-domain","localhost")
-            udp_workers = tasks["network"]["udp"].get("udp-workers",0)
-            udp_destination = tasks["network"]["udp"].get("udp-domain","localhost")
+            tcp_workers = task["network"]["tcp"].get("tcp-workers", 0)
+            tcp_destination = task["network"]["tcp"].get("tcp-domain","localhost")
+            udp_workers = task["network"]["udp"].get("udp-workers",0)
+            udp_destination = task["network"]["udp"].get("udp-domain","localhost")
 
             cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--memrate-bytes", f"{disk_size}", "--memrate-rd-mbs", f"{read_size}", "--memrate-wr-mbs", f"{write_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
@@ -79,10 +74,10 @@ def postJSON():
     end_time = content["end_time"]
 
     cpu = start_load.get("cpu", 0)
-    disk_rate = tasks["disk"].get("memrate", 0)
-    disk_size = tasks["disk"].get("memrate-bytes", 0)
-    read_size = task["disk"].get("mem-read-size", 0)
-    write_size = task["disk"].get("mem-write-size", 0)
+    disk_rate = start_load["disk"].get("memrate", 0)
+    disk_size = start_load["disk"].get("memrate-bytes", 0)
+    read_size = start_load["disk"].get("mem-read-size", 0)
+    write_size = start_load["disk"].get("mem-write-size", 0)
     tcp_workers = start_load["network"]["tcp"].get("tcp-workers", 0)
     tcp_destination = start_load["network"]["tcp"].get("tcp-domain","localhost")
     udp_workers = start_load["network"]["udp"].get("udp-workers", 0)

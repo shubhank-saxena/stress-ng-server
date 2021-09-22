@@ -16,4 +16,4 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY . .
 
-CMD python main.py
+CMD python server.py

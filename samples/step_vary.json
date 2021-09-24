@@ -3,9 +3,9 @@
         "cpu": 10,
         "disk":{ 
             "memrate": 10,
-            "memrate-bytes": "120M",
-            "mem-read-size": "250M",
-            "mem-write-size": "200M"
+            "memrate-bytes": "120",
+            "mem-read-size": 250,
+            "mem-write-size": 200
         },
         "network":{
             "tcp":{ 
@@ -24,8 +24,8 @@
         "disk":{ 
             "memrate": 10,
             "memrate-bytes": "120M",
-            "mem-read-size": "250M",
-            "mem-write-size": "200M"
+            "mem-read-size": 250,
+            "mem-write-size": 200
         },
         "network":{
             "tcp":{ 

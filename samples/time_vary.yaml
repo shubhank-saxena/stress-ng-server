@@ -5,13 +5,13 @@ total_time: 20
 task_run:
   task1:
     time_slot: 10
-    resource:
+    resources:
       cpu: 10
       disk: 
         memrate: 10
         memrate-bytes: 120M
-        mem-read-size: 250M
-        mem-write-size: 200M
+        mem-read-size: 250
+        mem-write-size: 200
       network:
         tcp: 
           tcp-workers: 10
@@ -22,13 +22,13 @@ task_run:
 
   task2:
     time_slot: 10
-    resource:
+    resources:
       cpu: 10
       disk: 
         memrate: 10
         memrate-bytes: 120M
-        mem-read-size: 250M
-        mem-write-size: 200M
+        mem-read-size: 250
+        mem-write-size: 200
       network:
         tcp: 
           tcp-workers: 10

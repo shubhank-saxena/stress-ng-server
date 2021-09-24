@@ -2,29 +2,29 @@ operationMode : step
 
 start_load:
   cpu: 10
-  disk: 
+  disk:
     memrate: 10
-    memrate-bytes: 120M
-    mem-read-size: 250M
-    mem-write-size: 200M
+    memrate-bytes: "128M"
+    mem-read-size: 256
+    mem-write-size: 512
   network:
     tcp: 
       tcp-workers: 10
-      tcp-domain: localhost
+      tcp-domain: "http://127.0.0.1"
     udp:
       udp-workers: 10
-      udp-domain: localhost
+      udp-domain: "http://127.0.0.1"
 
 
-time_step: 10
+time_step: 5
 
 step_load:
   cpu: 10
   disk: 
     memrate: 10
-    memrate-bytes: 120M
-    mem-read-size: 250M
-    mem-write-size: 200M
+    memrate-bytes: "128M"
+    mem-read-size: 256
+    mem-write-size: 512
   network:
     tcp: 
       tcp-workers: 10

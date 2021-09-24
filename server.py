@@ -28,6 +28,25 @@ def postFile():
     return "File Uploaded"
 
 
+def dict_formation(load):
+    cmd_dict = {}
+    #CPU Configurations
+    cmd_dict["cpu"] = load.get("cpu", "NA")
+    #Disk Configurations
+    if "disk" in load.keys():
+        cmd_dict["memrate"] = load["disk"].get("memrate", "NA")
+        cmd_dict["memrate-bytes"] = load["disk"].get("memrate-bytes", "NA")
+        cmd_dict["memrate-rd-mbs"] = load["disk"].get("mem-read-size", "NA")
+        cmd_dict["memrate-wr-mbs"] = load["disk"].get("mem-write-size", "NA")
+    #Network Configurations
+    if "network" in load.keys():
+        cmd_dict["sock"] =load["network"]["tcp"].get("tcp-workers", "NA")
+        cmd_dict["sock-domain"] = load["network"]["tcp"].get("tcp-domain","NA")
+        cmd_dict["udp"] = load["network"]["udp"].get("udp-workers", "NA")
+        cmd_dict["udp-domain"] =load["network"]["udp"].get("udp-domain","NA")
+    return cmd_dict
+
+
 @app.route("/v1/runtask/time_vary", methods=["GET", "POST"])
 def postJson():
 
@@ -38,23 +57,21 @@ def postJson():
 
     total_time = content["total_time"]
     run_times = nested_lookup("time_slot", content)
-    tasks = nested_lookup("resource", content)
+    tasks = nested_lookup("resources", content)
 
     if sum(run_times) != total_time:
         return "Time slots does not match total time", 404
     else:
         for time_run, task in zip(run_times, tasks):
-            cpu = task["cpu"]
-            disk_rate = task["disk"].get("memrate", 0)
-            disk_size = task["disk"].get("memrate-bytes", 0)
-            read_size = task["disk"].get("mem-read-size", 0)
-            write_size = task["disk"].get("mem-write-size", 0)
-            tcp_workers = task["network"]["tcp"].get("tcp-workers", 0)
-            tcp_destination = task["network"]["tcp"].get("tcp-domain","localhost")
-            udp_workers = task["network"]["udp"].get("udp-workers",0)
-            udp_destination = task["network"]["udp"].get("udp-domain","localhost")
+            load = dict_formation(task)
+            
+            cmd = ["stress-ng", "-t", f"{time_run}"]
 
-            cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--memrate-bytes", f"{disk_size}", "--memrate-rd-mbs", f"{read_size}", "--memrate-wr-mbs", f"{write_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
+            for key in load:
+                if load[key] != "NA":
+                    cmd.append(f"--{key}")
+                    cmd.append(f"{load[key]}")
+
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
 
     return "Tasks run successfully"
@@ -68,32 +85,28 @@ def postJSON():
     json_content = request.args["content"]
     content = json.loads(json_content.replace("'", '"'))
 
-    start_load = content["start_load"]
+    start_load = dict_formation(content["start_load"])
+    step_load = dict_formation(content["step_load"])
     time_step = content["time_step"]
-    step_load = content["step_load"]
     end_time = content["end_time"]
 
-    cpu = start_load.get("cpu", 0)
-    disk_rate = start_load["disk"].get("memrate", 0)
-    disk_size = start_load["disk"].get("memrate-bytes", 0)
-    read_size = start_load["disk"].get("mem-read-size", 0)
-    write_size = start_load["disk"].get("mem-write-size", 0)
-    tcp_workers = start_load["network"]["tcp"].get("tcp-workers", 0)
-    tcp_destination = start_load["network"]["tcp"].get("tcp-domain","localhost")
-    udp_workers = start_load["network"]["udp"].get("udp-workers", 0)
-    udp_destination = start_load["network"]["udp"].get("udp-domain","localhost")
-
     for time_run in range(0, end_time, time_step):
-        cmd = ["stress-ng", "--cpu", f"{cpu}", "--memrate", f"{disk_rate}", "--memrate-bytes", f"{disk_size}", "--memrate-rd-mbs", f"{read_size}", "--memrate-wr-mbs", f"{write_size}", "--sock", f"{tcp_workers}", "--sock-domain", f"{tcp_destination}", "--udp", f"{udp_workers}", "--udp-domain", f"{udp_destination}", "-t", f"{time_run}"]
-        run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
 
-        cpu = cpu + step_load.get("cpu", 0)
-        disk_rate = disk_rate + step_load["disk"].get("memrate", 0)
-        disk_size = disk_size + step_load["disk"].get("memrate-bytes", 0)
-        read_size = read_size + step_load["disk"].get("mem-read-size", 0)
-        write_size = write_size + step_load["disk"].get("mem-write-size", 0)
-        tcp_workers = tcp_workers + step_load["network"]["tcp"].get("tcp-workers", 0)
-        udp_workers = udp_workers + step_load["network"]["udp"].get("udp-workers",0)
+        cmd = ["stress-ng", "-t", f"{time_step}"]
+        
+        for key in start_load:
+            if start_load[key] != "NA":
+                cmd.append(f"--{key}")
+                cmd.append(f"{start_load[key]}")
+        
+        run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
+        
+        for key in start_load:
+            if start_load[key] != "NA" and step_load[key] != "NA":
+                if key == "memrate-bytes":
+                    start_load[key] = str(int(start_load[key][:-1]) + int(step_load[key][:-1]))+start_load[key][-1]
+                else:
+                    start_load[key] = start_load[key] + step_load[key]
 
     return "Tasks run successfully"
 

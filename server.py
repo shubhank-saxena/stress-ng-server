@@ -71,7 +71,7 @@ def postJson():
                 if load[key] != "NA":
                     cmd.append(f"--{key}")
                     cmd.append(f"{load[key]}")
-
+            
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
 
     return "Tasks run successfully"

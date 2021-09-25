@@ -7,9 +7,8 @@ spec:
     app: stress-ng-server
   ports:
   - protocol: "TCP"
-    port: 8000
-    targetPort: 8000
-  type: LoadBalancer
+    port: 8700
+    targetPort: 8700
 
 ---
 
@@ -21,7 +20,7 @@ spec:
   selector:
     matchLabels:
       app: stress-ng-server
-  replicas: 5
+  replicas: 1
   template:
     metadata:
       labels:
@@ -29,7 +28,7 @@ spec:
     spec:
       containers:
       - name: stress-ng-server
-        image: stress-ng-server
-        imagePullPolicy: IfNotPresent
+        image: shubhank19/stress-ng-server:latest
+        imagePullPolicy: Always
         ports:
-        - containerPort: 8000
+        - containerPort: 8700

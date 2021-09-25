@@ -4,7 +4,7 @@ RUN pip install pipenv
 
 RUN apk add --upgrade stress-ng
 
-EXPOSE 8000 8000
+EXPOSE 8700
 
 LABEL Image for stress-ng server application
 

@@ -2,8 +2,9 @@ import json
 import logging
 import os
 import subprocess
-
+import time
 import yaml
+
 from conf import settings
 from flask import Flask, redirect, request, url_for
 from nested_lookup import nested_lookup
@@ -100,7 +101,8 @@ def postJSON():
                 cmd.append(f"{start_load[key]}")
         
         run_background_task(cmd, logging.getLogger(__name__), 'Starting Step Runner')
-        
+        time.sleep(time_step)
+
         for key in start_load:
             if start_load[key] != "NA" and step_load[key] != "NA":
                 if key == "memrate-bytes":

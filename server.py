@@ -75,6 +75,8 @@ def postJson():
             
             run_background_task(cmd, logging.getLogger(__name__), 'Starting Time Runner')
 
+            time.sleep(time_run)
+
     return "Tasks run successfully"
 
 

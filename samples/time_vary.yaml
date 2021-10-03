@@ -7,7 +7,11 @@ task_run:
     time_slot: 10
     resources:
       cpu: 10
-      disk: 
+      disk:
+        hdd: 10
+        hdd-bytes: "120M"
+        hdd-write-size: "2M"
+      memory: 
         memrate: 10
         memrate-bytes: 120M
         mem-read-size: 250
@@ -24,7 +28,11 @@ task_run:
     time_slot: 10
     resources:
       cpu: 10
-      disk: 
+      disk:
+        hdd: 10
+        hdd-bytes: "120M"
+        hdd-write-size: "2M"
+      memory: 
         memrate: 10
         memrate-bytes: 120M
         mem-read-size: 250

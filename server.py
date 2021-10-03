@@ -35,6 +35,11 @@ def dict_formation(load):
     cmd_dict["cpu"] = load.get("cpu", "NA")
     #Disk Configurations
     if "disk" in load.keys():
+        cmd_dict["hdd"] = load["disk"].get("disk", "NA")
+        cmd_dict["hdd-bytes"] = load["disk"].get("hdd-bytes", "NA")
+        cmd_dict["hdd-write-size"] = load["disk"].get("hdd-write-size", "NA")
+    #Memory Configurations
+    if "memory" in load.keys():
         cmd_dict["memrate"] = load["disk"].get("memrate", "NA")
         cmd_dict["memrate-bytes"] = load["disk"].get("memrate-bytes", "NA")
         cmd_dict["memrate-rd-mbs"] = load["disk"].get("mem-read-size", "NA")

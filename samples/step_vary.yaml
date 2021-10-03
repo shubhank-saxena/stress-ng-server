@@ -3,6 +3,10 @@ operationMode : step
 start_load:
   cpu: 10
   disk:
+    hdd: 10
+    hdd-bytes: "120M"
+    hdd-write-size: "2M"
+  memory:
     memrate: 10
     memrate-bytes: "128M"
     mem-read-size: 256
@@ -20,7 +24,11 @@ time_step: 5
 
 step_load:
   cpu: 10
-  disk: 
+  disk:
+    hdd: 10
+    hdd-bytes: "120M"
+    hdd-write-size: "2M"
+  memory: 
     memrate: 10
     memrate-bytes: "128M"
     mem-read-size: 256
